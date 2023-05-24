@@ -4,9 +4,9 @@ TOC: GPGPU
 
 GPGPU 是  "通用型" GPU, 意思就是用GPU做一些除了绘制像素之外的事.
 
-在WebGL中可以通过纹理不是图像，而是是一个2D值数组, 来理解GPGPU的基本实现. 在 [关于纹理的文章中](webgl-3d-textures.html)
+在WebGL中可以通过纹理不是图像，而是是一个2维数组, 来理解GPGPU的基本实现. 在 [关于纹理的文章中](webgl-3d-textures.html)
 我们讨论了从纹理中读取. 在[关于渲染纹理的文章中](webgl-render-to-texture.html)
-我们讨论了写入纹理. 所以, 如果可以将纹理转换成一个2D数组, 我们就可以对它进行读取和写入. 类似的, 一个缓冲区不仅仅是位置、法线、纹理坐标和颜色. 它可以是任何值, 速度, 集合以及股价等. 这就是WebGL的GPGPU, 可以创造性的运用这些知识进行一些数学计算.
+我们讨论了写入纹理. 所以, 如果可以将纹理转换成一个2维数组, 我们就可以对它进行读取和写入. 类似的, 一个缓冲区不仅仅是位置、法线、纹理坐标和颜色. 它可以是任何值, 速度, 集合以及股价等. 这就是WebGL的GPGPU, 可以创造性的运用这些知识进行一些数学计算.
 
 ## 首先, 让我们从纹理开始
 
@@ -137,7 +137,7 @@ mapDst(dst, multBy2(src));
 // dst 的值变为 [2, 4, 6, 8, 10, 12];
 ```
 
-## 在WebGL中纹理是 2D 数组.
+## 在WebGL中纹理是 二维数组.
 
 让我们假设, 我们的`dst`数组代表的是一个 3x2 的纹理
 
@@ -176,13 +176,9 @@ mapDst(dst, 3, 2, multBy2(src, 3));
 // dst 的值变为 [2, 4, 6, 8, 10, 12];
 ```
 
-And we could keep going. I'm hoping the examples above helps you see that GPGPU in WebGL
-is pretty simple conceptually. Let's actually do the above in WebGL.
+接下来继续, 我希望通过上面的例子让你看到WebGL的GPGPU理论上很简单. 让我们在WebGL中实际执行上面的操作
 
-To understand the following code you will, at a minimum, need to have read
-[the article on fundamentals](webgl-fundamentals.html), probably the article on 
-[How It Works](webgl-how-it-works.html), the article on [GLSL](webgl-shaders-and-glsl.html)
-and [the article on textures](webgl-3d-textures.html).
+为了理解下面的代码, 你至少需要阅读[基本原理的文章](webgl-fundamentals.html), 关于[如何工作](webgl-how-it-works.html)的文章, 关于[GLSL](webgl-shaders-and-glsl.html)的文章和[关于纹理的文章](webgl-3d-textures.html).
 
 ```js
 const vs = `#version 300 es
@@ -209,7 +205,7 @@ void main() {
 const dstWidth = 3;
 const dstHeight = 2;
 
-// make a 3x2 canvas for 6 results
+// 用六个格子生成 3x2 的画布
 const canvas = document.createElement('canvas');
 canvas.width = dstWidth;
 canvas.height = dstHeight;
@@ -220,7 +216,7 @@ const program = webglUtils.createProgramFromSources(gl, [vs, fs]);
 const positionLoc = gl.getAttribLocation(program, 'position');
 const srcTexLoc = gl.getUniformLocation(program, 'srcTex');
 
-// setup a full canvas clip space quad
+// 设置一个完整的四边形画布剪辑空间
 const buffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -232,37 +228,36 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
    1,  1,
 ]), gl.STATIC_DRAW);
 
-// Create a vertex array object (attribute state)
+// 创建顶点数组对象 (attribute state)
 const vao = gl.createVertexArray();
 gl.bindVertexArray(vao);
 
-// setup our attributes to tell WebGL how to pull
-// the data from the buffer above to the position attribute
+// 设置我们的 attributes, 告诉 WebGL 如何从缓冲区中拉取上面的位置属性
 gl.enableVertexAttribArray(positionLoc);
 gl.vertexAttribPointer(
     positionLoc,
-    2,         // size (num components)
-    gl.FLOAT,  // type of data in buffer
-    false,     // normalize
-    0,         // stride (0 = auto)
-    0,         // offset
+    2,         // 大小 (num components)
+    gl.FLOAT,  // 缓冲区数据类型
+    false,     // 归一化
+    0,         // 步幅 (0 = auto)
+    0,         // 偏移值
 );
 
-// create our source texture
+// 创建我们的源纹理
 const srcWidth = 3;
 const srcHeight = 2;
 const tex = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, tex);
-gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1); // see https://webglfundamentals.org/webgl/lessons/webgl-data-textures.html
+gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1); // 看 https://webglfundamentals.org/webgl/lessons/webgl-data-textures.html
 gl.texImage2D(
     gl.TEXTURE_2D,
-    0,                // mip level
-    gl.R8,            // internal format
+    0,                // mip级别
+    gl.R8,            // 内部格式
     srcWidth,
     srcHeight,
-    0,                // border
-    gl.RED,           // format
-    gl.UNSIGNED_BYTE, // type
+    0,                // 板框
+    gl.RED,           // 格式化
+    gl.UNSIGNED_BYTE, // 类型
     new Uint8Array([
       1, 2, 3,
       4, 5, 6,
@@ -273,71 +268,62 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 gl.useProgram(program);
-gl.uniform1i(srcTexLoc, 0);  // tell the shader the src texture is on texture unit 0
+gl.uniform1i(srcTexLoc, 0);  // 告诉着色器源纹理在纹理0单元
 
-gl.drawArrays(gl.TRIANGLES, 0, 6);  // draw 2 triangles (6 vertices)
+gl.drawArrays(gl.TRIANGLES, 0, 6);  // 画两个三角(6 个顶点)
 
-// get the result
+// 获取结果
 const results = new Uint8Array(dstWidth * dstHeight * 4);
 gl.readPixels(0, 0, dstWidth, dstHeight, gl.RGBA, gl.UNSIGNED_BYTE, results);
 
-// print the results
+// 打印结果
 for (let i = 0; i < dstWidth * dstHeight; ++i) {
   log(results[i * 4]);
 }
 ```
 
-and here it is running
+现在它跑起来了
 
 {{{example url="../webgl-gpgpu-mult-by-2.html"}}}
 
-Some notes about the code above.
+上面代码的一些注释.
 
-* We draw a clip space -1 to +1 quad.
+* 我们画了一个 -1 到 +1 方形剪辑空间.
 
-  We create vertices for a -1 to +1 quad from 2 triangles. This means, assuming the viewport
-  is set correctly, we'll draw all the pixels in the destination. In other words we'll ask
-  our shader to generate a value for every element in the result array. That array in
-  this case is the canvas itself.
+  我们通过两个三角形创建了一个-1 到 +1 方形的顶点. 这意味着, 假如视口设置正确, 我们将会在目标中绘制所有像素. 换句话说, 我们将告诉着色器为结果数组中的每个元素生成一个值. 那个数组在这个例子中就是画布自己.
 
-* `texelFetch` is a texture function that looks up a single texel from a texture.
+* `texelFetch` 是一个用来查找纹理中一个纹素的纹理函数.
 
-  It takes 3 parameters. The sampler, an integer based texel coordinate, and mip level.
-  `gl_FragCoord` is a vec2, we need to turn it into an `ivec2` to use it with
-  `texelFetch`. There is no extra math to do here as long the source texture and
-  destination texture are the same size which in this case they are.
+  它有3个参数. 采样器, 基于整型的纹素坐标, 和 mip 级别.
+  `gl_FragCoord` 是一个vec2类型数据, 我们需要转换它为 `ivec2`来给
+  `texelFetch`使用. 这里没有额外的计算要做, 只要源纹理和目标纹理是相同大小, 在这个例子中它们是的.
 
-* Our Shader is writing 4 values per pixel
+* 我们着色器每个像素写4个值
 
-  In this particular case this affects how we read the output. We ask for `RGBA/UNSIGNED_BYTE`
-  from `readPixels` [because other format/type combinations are not supported](webgl-readpixels.html).
-  So we have to look at every 4th value for our answer.
+  在这个特殊情况下, 这会影响我们读取输出的方式. 我们将 `RGBA/UNSIGNED_BYTE`
+  传入 `readPixels` [因为它不支持其他格式/类型组合](webgl-readpixels.html).所以我们必须考虑每四个值输出结果.
 
-  Note: It would be smart to try to take advantage of the fact that WebGL does 4 values at a time
-  to go even faster.
+  注释: 尝试利用WebGL一次执行四个值是非常明智的, 可以使运行更快.
 
-* We use `R8` as our texture's internal format.
+* 我们使用 `R8` 作为我们纹理的内部格式.
 
-  This means only the red channel from the texture has value from our data.
+  这意味着我们只有纹理中红色通道的值.
 
-* Both our input data and output data (the canvas) are `UNSIGNED_BYTE` values
+* 我们输入值和输出值(画布) 都是 `UNSIGNED_BYTE` 类型的值
 
-  The means we can only pass in and get back integer values between 0 and 255.
-  We could use different formats for input by supplying a texture of a different format.
-  We could also try rendering to a texture of a different format for more range of output values.
+  这意味着我们只能传入和返回0到255之间的整数值.我们可以为不同格式的纹理提供不同的输入格式. 我们也可以尝试不同格式的纹理, 以获得更大大范围输出值.
 
-In the example above src and dst are the same size. Let's change it so we add every 2 values
-from src to make dst. In other words, given `[1, 2, 3, 4, 5, 6]` as input we want
-`[3, 7, 11]` as output. And further, let's keep the source as 3x2 data
+在上面例子中, src 和 dst 都是相同大小的. 让我们把它修改成, 每src每两个值相加生成dst. 话句话说, 就是输入 `[1, 2, 3, 4, 5, 6]` , 输出
+`[3, 7, 11]` . 更进一步, 我们将源保持为 3x2 的数据
 
-The basic formula to get a value from a 2D array as though it was a 1D array is
+从2维数组获取1维数组值的基本公式是
 
 ```js
 y = floor(indexInto1DArray / widthOf2DArray);
 x = indexInto1DArray % widthOf2Array;
 ```
 
-Given that, our fragment shader needs to change to this to add every 2 values.
+考虑到这一点, 我们的片元着色器需要修改成每2个值相加.
 
 ```glsl
 #version 300 es
@@ -355,7 +341,7 @@ vec4 getValueFrom2DTextureAs1DArray(sampler2D tex, ivec2 dimensions, int index) 
 }
 
 void main() {
-  // compute a 1D index into dst
+  // 在dst中计算 1维索引
   ivec2 dstPixel = ivec2(gl_FragCoord.xy);
   int dstIndex = dstPixel.y * dstDimensions.x + dstPixel.x;
 
@@ -368,22 +354,21 @@ void main() {
 }
 ```
 
-The function `getValueFrom2DTextureAs1DArray` is basically our array accessor
-function. That means these 2 lines
+`getValueFrom2DTextureAs1DArray`函数基本就是我们的数组访问函数. 就是这两行
 
 ```glsl
   vec4 v1 = getValueFrom2DTextureAs1DArray(srcTex, srcDimensions, dstIndex * 2.0);
   vec4 v2 = getValueFrom2DTextureAs1DArray(srcTex, srcDimensions, dstIndex * 2.0 + 1.0);
 ```
 
-Effectively mean this
+就是这个意思
 
 ```glsl
   vec4 v1 = srcTexAs1DArray[dstIndex * 2.0];
   vec4 v2 = setTexAs1DArray[dstIndex * 2.0 + 1.0];
 ```
 
-In our JavaScript we need to lookup the location of `dstDimensions`
+在我们的JavaScript中, 我们需要查找 `dstDimensions`的位置
 
 ```js
 const program = webglUtils.createProgramFromSources(gl, [vs, fs]);
@@ -392,7 +377,7 @@ const srcTexLoc = gl.getUniformLocation(program, 'srcTex');
 +const dstDimensionsLoc = gl.getUniformLocation(program, 'dstDimensions');
 ```
 
-and set it
+然后设置它的值
 
 ```js
 gl.useProgram(program);
@@ -400,7 +385,7 @@ gl.uniform1i(srcTexLoc, 0);  // tell the shader the src texture is on texture un
 +gl.uniform2f(dstDimensionsLoc, dstWidth, dstHeight);
 ```
 
-and we need to change the size of the destination (the canvas)
+接着我们需要修改目标的大小(画布)
 
 ```js
 const dstWidth = 3;
@@ -408,8 +393,7 @@ const dstWidth = 3;
 +const dstHeight = 1;
 ```
 
-and with that we have now have the result array able to do math
-with random access into the source array
+现在我们就有了可以随机访问源数组进行数学计算的结果数组
 
 {{{example url="../webgl-gpgpu-add-2-elements.html"}}}
 
