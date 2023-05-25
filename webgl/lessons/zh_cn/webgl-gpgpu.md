@@ -381,7 +381,7 @@ const srcTexLoc = gl.getUniformLocation(program, 'srcTex');
 
 ```js
 gl.useProgram(program);
-gl.uniform1i(srcTexLoc, 0);  // tell the shader the src texture is on texture unit 0
+gl.uniform1i(srcTexLoc, 0);  // 告诉着色器源纹理在纹理单元0
 +gl.uniform2f(dstDimensionsLoc, dstWidth, dstHeight);
 ```
 
@@ -397,19 +397,15 @@ const dstWidth = 3;
 
 {{{example url="../webgl-gpgpu-add-2-elements.html"}}}
 
-If you wanted to use more arrays as input just add more textures to put more
-data in the same texture.
+如果你想输入更多的数组, 只需要添加更多的纹理, 将更多的数据添加到相同的纹理中
 
-## Now let's do it with *transform feedback*
+## 现在我们使用 *变换反馈(transform feedback)* 来做这个
 
-"Transform Feedback" is a fancy name for the ability to write the output
-of varyings in a vertex shader to one or more buffers.
+"变换反馈(transform feedback)"是一个花哨的名字, 将顶点着色器中的变量输出(varyings)输入到一个或多个缓冲区.
 
-The advantage to using transform feedback is the output is 1D
-so it's probably easier to reason about. It's even closer to `map` from JavaScript.
+使用变换反馈(transform feedback)的优点是输出是一维的, 更容易推断. 它更接近JavaScript的 `map`.
 
-Let's take in 2 arrays of values and output their sum, their difference,
-and their product. Here's the vertex shader
+让我们用两个数组的值, 去输出他们的和, 差以及乘积. 下面是顶点着色器代码
 
 ```glsl
 #version 300 es
@@ -428,7 +424,7 @@ void main() {
 }
 ```
 
-and the fragment shader is just enough to compile
+以及能过编译通过的片元着色器
 
 ```glsl
 #version 300 es
@@ -437,14 +433,10 @@ void main() {
 }
 ```
 
-To use transform feedback we have to tell WebGL which varyings we want written
-and in what order. We do that by calling `gl.transformFeedbackVaryings` before
-linking the shader program. Because of this we are not going to use our helper
-to compile the shaders and link the program this time, just to make it clear
-what we have to do.
+为了使用变换反馈(transform feedback), 我们需要告诉WebGL, 我们需要写入哪些变量, 是以什么顺序写入. 我可以在连接着色器程序之前, 使用 `gl.transformFeedbackVaryings`来做这个. 因此这次我们不用封装好的方法来编译着色器和连接程序, 这样可以让我们更加清楚我们需要做什么.
 
-So, here is the code for compiling a shader similar to the code in the very
-[first article](webgl-fundamentals.html).
+下面编译着色器的代码和[第一篇文章](webgl-fundamentals.html)类似
+.
 
 ```js
 function createShader(gl, type, src) {
@@ -458,8 +450,7 @@ function createShader(gl, type, src) {
 }
 ```
 
-We'll use it to compile our 2 shaders and then attach them and call
-`gl.transformFeedbackVaryings` before linking
+我们将使用它编译两个着色器, 之后附加到程序中, 然后在连接程序前调用 `gl.transformFeedbackVaryings`
 
 ```js
 const vShader = createShader(gl, gl.VERTEX_SHADER, vs);
@@ -479,23 +470,13 @@ if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
 }
 ```
 
-`gl.transformFeedbackVaryings` takes 3 arguments. The program, an array of the names
-of the varyings we want to write in the order you want them written. 
-If you did have a fragment shader that actually did
-something then maybe some of your varyings are only for the fragment shader and so
-don't need to be written. In our case we will write all of our varyings so we pass
-in the names of all 3. The last parameter can be 1 of 2 values. Either `SEPARATE_ATTRIBS`
-or `INTERLEAVED_ATTRIBS`. 
+`gl.transformFeedbackVaryings` 接收3个参数. 程序, 一个我们想要它们按顺序写入的变量名称的数组(如果你有一个片元着色器, 里面变量是作用于片元着色器的, 那么不需要写到里面, 在我们的例子中, 我们将写入所有的变量, 所以我们加入所有的3个名称). 最后一个参数可以使用两个值 `SEPARATE_ATTRIBS` 或者 `INTERLEAVED_ATTRIBS`. 
 
-`SEPARATE_ATTRIBS` means each varying will be written to a different buffer.
-`INTERLEAVED_ATTRIBS` means all the varyings will be written to the same buffer
-but interleaved on the order we specified. In our case since we specified
-`['sum', 'difference', 'product']` if we used `INTERLEAVED_ATTRIBS` the output
-would be `sum0, difference0, product0, sum1, difference1, product1, sum2, difference2, product2, etc...`
-into a single buffer. We're using `SEPARATE_ATTRIBS` though so instead
-each output will be written to the a different buffer.
+`SEPARATE_ATTRIBS` 意思是每个变量将会被写入到不同的缓冲区中.
+`INTERLEAVED_ATTRIBS` 意思是所有变量将被写入到相同的缓冲区中, 但是会按照我们指定的顺序. 在我们的例子中, 因为我们指定了
+`['sum', 'difference', 'product']`, 如果使用 `INTERLEAVED_ATTRIBS`, 那么会将 `sum0, difference0, product0, sum1, difference1, product1, sum2, difference2, product2, etc...` 输出到一个相同的缓冲区中. 所以我们使用 `SEPARATE_ATTRIBS`来代替, 这样输出会被写入到不同的缓冲区中.
 
-So, like other examples we need to setup buffers for our input attributes
+因此, 像其他例子一样, 我们需要为我们输入属性设置缓冲区.
 
 ```js
 const aLoc = gl.getAttribLocation(program, 'a');
