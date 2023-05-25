@@ -516,39 +516,35 @@ const aBuffer = makeBufferAndSetAttribute(gl, new Float32Array(a), aLoc);
 const bBuffer = makeBufferAndSetAttribute(gl, new Float32Array(b), bLoc);
 ```
 
-Then we need to setup a "transform feedback". A "transform feedback" is an object
-that contains the state of the buffers we will write to. Where as an [vertex array](webgl-attributes.html)
-specifies the state of all the input attributes, a "transform feedback" contains the
-state of all the output attributes.
+接着我们需要设置"变换反馈". "变换反馈"是一个包含我们要写入的缓冲区的状态的对象. 当[顶点数组](webgl-attributes.html)
+指定所有输入属性的状态时, "变换反馈"会包含所有输出属性的状态.
 
-Here is the code to set ours up
+下面时设置的代码
 
 ```js
-// Create and fill out a transform feedback
+// 创建并绑定变换反馈
 const tf = gl.createTransformFeedback();
 gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
 
-// make buffers for output
+// 设置输出的缓冲区
 const sumBuffer = makeBuffer(gl, a.length * 4);
 const differenceBuffer = makeBuffer(gl, a.length * 4);
 const productBuffer = makeBuffer(gl, a.length * 4);
 
-// bind the buffers to the transform feedback
+// 把缓冲区绑定到变换反馈上
 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, sumBuffer);
 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, differenceBuffer);
 gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, productBuffer);
 
 gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
-// buffer's we are writing to can not be bound else where
-gl.bindBuffer(gl.ARRAY_BUFFER, null);  // productBuffer was still bound to ARRAY_BUFFER so unbind it
+// 清楚缓冲区, 防止写入的缓冲区绑定到其他地方
+gl.bindBuffer(gl.ARRAY_BUFFER, null);  // productBuffer 仍然绑定在ARRAY_BUFFER, 所以解绑他
 ```
 
-We call `bindBufferBase` to set which buffer, each of the outputs, output 0, output 1, and output 2
-will write to. Outputs 0, 1, 2 correspond to the names we passed to `gl.transformFeedbackVaryings`
-when we linked the program.
+我们调用 `bindBufferBase`来设置把每个输入, 输出0, 输出1以及输出2写入到哪个缓冲区. 输出 0, 1, 2 对应我们连接程序时传递给`gl.transformFeedbackVaryings` 的名称.
 
-When we're done the "transform feedback" we created has state like this
+当我们完成"变换反馈"时, 我们创建的状态是这样的
 
 <img src="resources/transform-feedback-diagram.png" style="width: 625px;" class="webgl_center">
 
